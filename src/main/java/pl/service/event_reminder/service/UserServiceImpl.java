@@ -1,14 +1,12 @@
 package pl.service.event_reminder.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.service.event_reminder.model.entity.Role;
 import pl.service.event_reminder.model.entity.User;
 import pl.service.event_reminder.model.repository.UserRepository;
 import pl.service.event_reminder.web.dto.UserRegistration;
 
-import java.util.List;
 import java.util.Set;
 
 @Service
@@ -22,6 +20,7 @@ public class UserServiceImpl implements UserService{
                 .firstName(userRegistration.getFirstName())
                 .lastName(userRegistration.getLastName())
                 .email(userRegistration.getEmail())
+                .password(userRegistration.getPassword())
                 .roles(Set.of(new Role(DEFAULT_USER_ROLE)))
                 .build();
 
