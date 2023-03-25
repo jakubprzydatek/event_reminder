@@ -6,4 +6,5 @@ import pl.service.event_reminder.model.entity.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
+    User findByEmail(String email);
 }
