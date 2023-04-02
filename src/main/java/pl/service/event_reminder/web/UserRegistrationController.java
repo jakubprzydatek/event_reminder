@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import pl.service.event_reminder.service.UserService;
-import pl.service.event_reminder.web.dto.UserRegistration;
+import pl.service.event_reminder.web.dto.UserRegistrationDto;
 
 @Controller
 @RequiredArgsConstructor
@@ -21,13 +21,13 @@ public class UserRegistrationController {
     }
 
     @PostMapping
-    public String registerUserAccount(@ModelAttribute("user") UserRegistration userRegistration) {
-        userService.save(userRegistration);
+    public String registerUserAccount(@ModelAttribute("user") UserRegistrationDto userRegistrationDto) {
+        userService.save(userRegistrationDto);
         return "redirect:/registration?success";
     }
 
     @ModelAttribute("user")
-    public UserRegistration userRegistration() {
-        return new UserRegistration();
+    public UserRegistrationDto userRegistration() {
+        return new UserRegistrationDto();
     }
 }
