@@ -35,6 +35,29 @@
 
 <div class="container">
   <h1>Lista Twoich eventów</h1>
+  <table class="table table-striped table-dark">
+    <thead>
+    <tr>
+      <th scope="col"> Nazwa </th>
+      <th scope="col"> Notatka </th>
+      <th scope="col"> Pora miesiąca </th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:if="${events.empty}">
+      <td colspan="2"> Brak wydarzeń </td>
+    </tr>
+    <tr th:each="event : ${events}">
+      <td><span th:text="${event.eventName}"> Title </span></td>
+      <td><span th:text="${event.additionalNote}"> Author </span></td>
+      <td><span th:text="${event.monthGroup}"> Author </span></td>
+      <td><form th:switch="${event.isActive}" th:action="@{/deactivate/{id}(id=${event.id})}" method="post">
+        <button th:case="true" type="submit" name="action"  th:text="Wyłącz" value="deactivate" ></button>
+        <button th:case="false" type="submit" name="action"  th:text="Włącz" value="activate" th:formaction="@{/activate/{id}(id=${event.id})}"></button>
+      </form></td>
+    </tr>
+    </tbody>
+  </table>
   Witaj <span sec:authentication="principal.username"> User</span>
 </div>
 </body>
