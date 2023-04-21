@@ -1,7 +1,9 @@
 package pl.service.event_reminder.web.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import pl.service.event_reminder.model.entity.Event;
 
 import java.util.List;
@@ -10,6 +12,8 @@ import java.util.stream.Collectors;
 
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class EventDisplayDto {
     private Long id;
     private String eventName;

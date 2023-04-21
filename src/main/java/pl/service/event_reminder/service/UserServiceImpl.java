@@ -4,7 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import pl.service.event_reminder.EventValidationException;
+import pl.service.event_reminder.exception.EventException;
+import pl.service.event_reminder.exception.EventValidationException;
 import pl.service.event_reminder.config.PasswordEncoder;
 import pl.service.event_reminder.model.entity.User;
 import pl.service.event_reminder.model.entity.mapper.UserMapper;
@@ -41,7 +42,7 @@ public class UserServiceImpl implements UserService{
         if (user.isPresent()) {
             return user.get();
         }else {
-            throw new EventValidationException("Cannot find user with such ID");
+            throw new EventException("Cannot find user with such ID");
         }
     }
 

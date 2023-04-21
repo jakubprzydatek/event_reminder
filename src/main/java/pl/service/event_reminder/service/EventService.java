@@ -9,6 +9,10 @@ import java.util.Set;
 public interface EventService {
     Event save(EventCreationDto eventCreationDto);
 
+    Event edit(EventCreationDto eventCreationDto);
+
+    Event findById(Long id);
+
     Set<Event> findAllByUser(User user);
 
     User getCurrentUser();

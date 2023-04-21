@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import pl.service.event_reminder.model.entity.Event;
 import pl.service.event_reminder.model.entity.User;
 import pl.service.event_reminder.service.EventService;
 import pl.service.event_reminder.web.dto.EventCreationDto;

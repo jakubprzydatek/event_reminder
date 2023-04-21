@@ -9,4 +9,6 @@ import java.util.Set;
 public interface EventRepository extends JpaRepository<Event, Long> {
 
     Set<Event> findAllByUser(User user);
+
+    Set<Event> findAllByIsActiveTrue();
 }

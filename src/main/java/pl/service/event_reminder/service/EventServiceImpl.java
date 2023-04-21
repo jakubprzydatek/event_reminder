@@ -5,11 +5,12 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import pl.service.event_reminder.EventException;
+import pl.service.event_reminder.exception.EventException;
 import pl.service.event_reminder.authentication.IAuthenticationFacade;
 import pl.service.event_reminder.model.entity.Event;
 import pl.service.event_reminder.model.entity.User;
 import pl.service.event_reminder.model.repository.EventRepository;
+import pl.service.event_reminder.validator.EventValidator;
 import pl.service.event_reminder.web.dto.EventCreationDto;
 
 import java.util.Date;
@@ -22,8 +23,11 @@ public class EventServiceImpl implements EventService{
     private final UserService userService;
     private final IAuthenticationFacade authenticationFacade;
     private final EventRepository eventRepository;
+    private final EventValidator eventValidator;
     @Override
     public Event save(EventCreationDto eventCreationDto) {
+
+        eventValidator.validateEvent(eventCreationDto);
 
         Event event =  Event.builder()
                 .eventName(eventCreationDto.getEventName())
@@ -35,6 +39,24 @@ public class EventServiceImpl implements EventService{
                 .build();
 
         return eventRepository.save(event);
+    }
+
+    @Override
+    public Event edit(EventCreationDto eventCreationDto) {
+
+        eventValidator.validateEvent(eventCreationDto);
+
+        Event event = eventRepository.findById(eventCreationDto.getId()).orElseThrow(() -> new EventException("Cannot find event with such id"));
+        event.setEventName(eventCreationDto.getEventName());
+        event.setAdditionalNote(eventCreationDto.getAdditionalNote());
+        event.setMonthGroup(monthGroupService.findByName(eventCreationDto.getMonthGroup()));
+
+        return eventRepository.save(event);
+    }
+
+    @Override
+    public Event findById(Long id) {
+        return eventRepository.findById(id).orElseThrow(() -> new EventException("Cannot find event with such id"));
     }
 
     @Override
