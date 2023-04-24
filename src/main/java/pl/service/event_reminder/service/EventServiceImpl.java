@@ -1,22 +1,28 @@
 package pl.service.event_reminder.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import pl.service.event_reminder.dictionary.MonthGroups;
 import pl.service.event_reminder.exception.EventException;
 import pl.service.event_reminder.authentication.IAuthenticationFacade;
 import pl.service.event_reminder.model.entity.Event;
+import pl.service.event_reminder.model.entity.MonthGroup;
 import pl.service.event_reminder.model.entity.User;
 import pl.service.event_reminder.model.repository.EventRepository;
 import pl.service.event_reminder.validator.EventValidator;
 import pl.service.event_reminder.web.dto.EventCreationDto;
 
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.Set;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService{
     private final MonthGroupService monthGroupService;
@@ -32,11 +38,14 @@ public class EventServiceImpl implements EventService{
         Event event =  Event.builder()
                 .eventName(eventCreationDto.getEventName())
                 .additionalNote(eventCreationDto.getAdditionalNote())
-                .creationDate(new Date())
+                .creationDate(LocalDate.now())
                 .isActive(true)
                 .monthGroup(monthGroupService.findByName(eventCreationDto.getMonthGroup()))
                 .user(getCurrentUser())
+                .nextNotifyMonth(setNextNotificationDate(eventCreationDto))
                 .build();
+
+        log.info("Creating new event for user {}. Next notification month will be: {}", getCurrentUser().getEmail(), event.getNextNotifyMonth().getMonth().toString());
 
         return eventRepository.save(event);
     }
@@ -87,6 +96,34 @@ public class EventServiceImpl implements EventService{
         Event event = eventRepository.findById(id).orElseThrow(() -> new EventException("Cannot find event with such id"));
         event.setActive(true);
         return eventRepository.save(event);
+    }
+
+    @Override
+    public void setNotificationDateAfterEmailSent(Set<Event> events) {
+        events.forEach(event -> {
+            event.setNextNotifyMonth(LocalDate.now().with(TemporalAdjusters.firstDayOfNextMonth()));
+            eventRepository.save(event);
+        });
+    }
+
+    private LocalDate setNextNotificationDate(EventCreationDto eventCreationDto) {
+        MonthGroups monthGroup = MonthGroups.fromString(eventCreationDto.getMonthGroup());
+
+        if (MonthGroups.START == monthGroup) {
+            return LocalDate.now().with(TemporalAdjusters.firstDayOfNextMonth());
+        } else if (MonthGroups.HALF == monthGroup) {
+            if(LocalDate.now().getDayOfMonth() < 15) {
+                return LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
+            }else {
+                return LocalDate.now().with(TemporalAdjusters.firstDayOfNextMonth());
+            }
+        }else {
+            if(LocalDate.now().getDayOfMonth() < 25) {
+                return LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
+            }else {
+                return LocalDate.now().with(TemporalAdjusters.firstDayOfNextMonth());
+            }
+        }
     }
 
 }

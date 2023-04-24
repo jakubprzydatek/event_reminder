@@ -21,4 +21,6 @@ public interface EventService {
 
     Event activateEvent(Long id);
 
+    void setNotificationDateAfterEmailSent(Set<Event> events);
+
 }
