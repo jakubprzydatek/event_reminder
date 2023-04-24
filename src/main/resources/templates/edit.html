@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Dodaj wydarzenie</title>
+    <title>Edytuj wydarzenie</title>
     <link rel="stylesheet"
           href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
           crossorigin="anonymous">
+
 </head>
 <body>
 <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -43,33 +44,35 @@
 
             <div th:if="${errorMessage}"  th:text="${errorMessage}" class="alert alert-danger">Error</div>
 
-            <h1>Dodawanie nowego eventu</h1>
+            <h1>Edycja eventu</h1>
 
-            <form th:action="@{/createevent}" method="post" th:object="${event}">
+            <form th:action="@{/edit}" method="post" th:object="${event}">
+                <input type="hidden" th:field="*{id}" id="eventId">
                 <div class="form-group">
                     <label class="control-label" for="eventName"> Tytuł wydarzenia </label>
-                    <input id="eventName" class="form-control" th:field="*{eventName}"
+                    <input id="eventName" class="form-control" th:field="*{eventName}" value="${event.eventName}"
                            required autofocus="autofocus" />
                 </div>
 
                 <div class="form-group">
                     <label class="control-label" for="additionalNote"> Notatka </label>
                     <input
-                        id="additionalNote" class="form-control" th:field="*{additionalNote}"
-                        required autofocus="autofocus" />
+                            id="additionalNote" class="form-control" th:field="*{additionalNote}" value="${event.additionalNote}"
+                            required autofocus="autofocus" />
                 </div>
 
                 <div class="form-group">
                     <label class="control-label" for="monthGroup"> Pora miesiąca </label>
                     <select name="monthGroup" id="monthGroup" class="form-control" th:field="*{monthGroup}">
-                        <option value="Start">Początek</option>
-                        <option value="Half">Środek</option>
-                        <option value="End">Koniec</option>
+                        <option th:attr="showselected=('Start' == *{monthGroup})" value="Start">Początek</option>
+                        <option th:attr="showselected=('Half' == *{monthGroup})" value="Half">Środek</option>
+                        <option th:attr="showselected=('End' == *{monthGroup})" value="End">Koniec</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <button type="submit" class="btn btn-success" formnovalidate>Dodaj</button>
+                    <button type="submit" class="btn btn-success" formnovalidate>Zapisz</button>
+                    <button type="submit"  th:formaction="@{/edit/cancel}" class="btn btn-success" formnovalidate>Anuluj</button>
                 </div>
             </form>
         </div>

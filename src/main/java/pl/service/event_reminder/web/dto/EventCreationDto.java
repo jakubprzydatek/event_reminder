@@ -10,6 +10,7 @@ import java.util.Date;
 @Setter
 @Builder
 public class EventCreationDto {
+    private Long id;
     private String eventName;
     private String additionalNote;
     private boolean isActive;
