@@ -11,7 +11,7 @@ services:
     depends_on:
       mysql-development:
         condition: service_healthy
-    command: sh -c './wait-for mysql-development:3306 -- npm start'
+    command: sh -c './wait-for mysql-development:3306'
 
   mysql-development:
     image: mysql:8.0.17
@@ -27,3 +27,4 @@ services:
       test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
       timeout: 20s
       retries: 10
+

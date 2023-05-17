@@ -4,8 +4,7 @@ package pl.service.event_reminder.model.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 @Entity
 @Getter
@@ -19,12 +18,12 @@ public class Event {
     private Long id;
     private String eventName;
     private String additionalNote;
-    private LocalDate creationDate;
+    private ZonedDateTime creationDate;
     private boolean isActive;
-    private LocalDate nextNotifyMonth;
+    private ZonedDateTime nextNotifyMonth;
     @ManyToOne(fetch = FetchType.EAGER)
     private MonthGroup monthGroup;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     private User user;
 }
 

@@ -5,9 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import pl.service.event_reminder.exception.EventException;
-import pl.service.event_reminder.exception.EventValidationException;
 import pl.service.event_reminder.config.PasswordEncoder;
+import pl.service.event_reminder.exception.EventException;
 import pl.service.event_reminder.model.entity.User;
 import pl.service.event_reminder.model.entity.mapper.UserMapper;
 import pl.service.event_reminder.model.repository.UserRepository;
@@ -32,6 +31,9 @@ public class UserServiceImpl implements UserService{
                 .email(userRegistrationDto.getEmail())
                 .password(bCryptPassword.encode(userRegistrationDto.getPassword()))
                 .roles(Set.of(roleService.getRoleByName(DEFAULT_USER_ROLE)))
+                .startDay(1)
+                .halfDay(12)
+                .endDay(23)
                 .build();
 
         log.info("Creating new user with email: {}", userRegistrationDto.getEmail());

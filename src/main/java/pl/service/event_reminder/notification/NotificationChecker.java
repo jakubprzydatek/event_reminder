@@ -13,7 +13,8 @@ import pl.service.event_reminder.model.entity.User;
 import pl.service.event_reminder.model.repository.EventRepository;
 import pl.service.event_reminder.model.repository.UserRepository;
 
-import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,13 +31,13 @@ public class NotificationChecker {
 
     @Async
     @Scheduled(fixedRate = 60000)
-    public void checkEventsToNotify(){
+    public void checkEventsToNotify() {
         log.info("Events notification check...");
         List<User> users = userRepository.findAll();
 
         users.forEach(user -> {
             Set<Event> eventsToNotify = prepareEventsToNotifyForUser(user);
-            if(!CollectionUtils.isEmpty(eventsToNotify)) {
+            if (!CollectionUtils.isEmpty(eventsToNotify)) {
                 log.info("Events to notify has been found for user {}", user.getEmail());
                 notificationSender.sendEmail(user, eventsToNotify);
             }
@@ -46,25 +47,26 @@ public class NotificationChecker {
     private Set<Event> prepareEventsToNotifyForUser(User user) {
         Set<Event> events = eventRepository.findAllByUser(user);
 
-        return events.stream().filter(this::shouldBeSent).collect(Collectors.toSet());
+        return events.stream().filter(event -> shouldBeSent(event, user)).collect(Collectors.toSet());
     }
 
-    private boolean shouldBeSent(Event event) {
-        boolean isCurrentMonth = LocalDate.now().getMonthValue() >= event.getNextNotifyMonth().getMonthValue();
+    private boolean shouldBeSent(Event event, User user) {
+        ZonedDateTime now = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Warsaw"));
+        boolean isCurrentMonth = now.getMonthValue() >= event.getNextNotifyMonth().getMonthValue();
         boolean isNotificationDay = false;
 
         if (MonthGroups.START == MonthGroups.fromString(event.getMonthGroup().getMonthGroup())) {
-            isNotificationDay = true;
+            isNotificationDay = setIsNotificationDay(now, user.getStartDay());
         } else if (MonthGroups.HALF == MonthGroups.fromString(event.getMonthGroup().getMonthGroup())) {
-            if (LocalDate.now().getDayOfMonth() >= 15) {
-                isNotificationDay = true;
-            }
+            isNotificationDay = setIsNotificationDay(now, user.getHalfDay());
         } else if (MonthGroups.END == MonthGroups.fromString(event.getMonthGroup().getMonthGroup())) {
-            if (LocalDate.now().getDayOfMonth() >= 25) {
-                isNotificationDay = true;
-            }
+            isNotificationDay = setIsNotificationDay(now, user.getEndDay());
         }
 
         return event.isActive() && isCurrentMonth && isNotificationDay;
+    }
+
+    private boolean setIsNotificationDay(ZonedDateTime now, int day) {
+        return now.getDayOfMonth() >= day;
     }
 }

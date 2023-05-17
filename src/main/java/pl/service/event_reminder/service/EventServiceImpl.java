@@ -6,19 +6,18 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import pl.service.event_reminder.authentication.IAuthenticationFacade;
 import pl.service.event_reminder.dictionary.MonthGroups;
 import pl.service.event_reminder.exception.EventException;
-import pl.service.event_reminder.authentication.IAuthenticationFacade;
 import pl.service.event_reminder.model.entity.Event;
-import pl.service.event_reminder.model.entity.MonthGroup;
 import pl.service.event_reminder.model.entity.User;
 import pl.service.event_reminder.model.repository.EventRepository;
 import pl.service.event_reminder.validator.EventValidator;
 import pl.service.event_reminder.web.dto.EventCreationDto;
 
-import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
-import java.util.Date;
 import java.util.Set;
 
 @Service
@@ -32,20 +31,20 @@ public class EventServiceImpl implements EventService{
     private final EventValidator eventValidator;
     @Override
     public Event save(EventCreationDto eventCreationDto) {
-
         eventValidator.validateEvent(eventCreationDto);
 
         Event event =  Event.builder()
                 .eventName(eventCreationDto.getEventName())
                 .additionalNote(eventCreationDto.getAdditionalNote())
-                .creationDate(LocalDate.now())
+                .creationDate(ZonedDateTime.now())
                 .isActive(true)
                 .monthGroup(monthGroupService.findByName(eventCreationDto.getMonthGroup()))
                 .user(getCurrentUser())
-                .nextNotifyMonth(setNextNotificationDate(eventCreationDto))
+                .nextNotifyMonth(setNextNotificationDate(eventCreationDto, getCurrentUser()))
                 .build();
 
-        log.info("Creating new event for user {}. Next notification month will be: {}", getCurrentUser().getEmail(), event.getNextNotifyMonth().getMonth().toString());
+        log.info("Creating new event for user {}. Next notification month will be: {}", getCurrentUser().getEmail(),
+                event.getNextNotifyMonth().getMonth().toString());
 
         return eventRepository.save(event);
     }
@@ -55,7 +54,8 @@ public class EventServiceImpl implements EventService{
 
         eventValidator.validateEvent(eventCreationDto);
 
-        Event event = eventRepository.findById(eventCreationDto.getId()).orElseThrow(() -> new EventException("Cannot find event with such id"));
+        Event event = eventRepository.findById(eventCreationDto.getId())
+                .orElseThrow(() -> new EventException("Cannot find event with such id"));
         event.setEventName(eventCreationDto.getEventName());
         event.setAdditionalNote(eventCreationDto.getAdditionalNote());
         event.setMonthGroup(monthGroupService.findByName(eventCreationDto.getMonthGroup()));
@@ -101,28 +101,29 @@ public class EventServiceImpl implements EventService{
     @Override
     public void setNotificationDateAfterEmailSent(Set<Event> events) {
         events.forEach(event -> {
-            event.setNextNotifyMonth(LocalDate.now().with(TemporalAdjusters.firstDayOfNextMonth()));
+            event.setNextNotifyMonth(ZonedDateTime.now().with(TemporalAdjusters.firstDayOfNextMonth()));
             eventRepository.save(event);
         });
     }
 
-    private LocalDate setNextNotificationDate(EventCreationDto eventCreationDto) {
+    private ZonedDateTime setNextNotificationDate(EventCreationDto eventCreationDto, User user) {
         MonthGroups monthGroup = MonthGroups.fromString(eventCreationDto.getMonthGroup());
+        ZonedDateTime now = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Warsaw"));
 
         if (MonthGroups.START == monthGroup) {
-            return LocalDate.now().with(TemporalAdjusters.firstDayOfNextMonth());
+            return getMonth(now, user.getStartDay());
         } else if (MonthGroups.HALF == monthGroup) {
-            if(LocalDate.now().getDayOfMonth() < 15) {
-                return LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
-            }else {
-                return LocalDate.now().with(TemporalAdjusters.firstDayOfNextMonth());
-            }
+            return getMonth(now, user.getHalfDay());
         }else {
-            if(LocalDate.now().getDayOfMonth() < 25) {
-                return LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
-            }else {
-                return LocalDate.now().with(TemporalAdjusters.firstDayOfNextMonth());
-            }
+            return getMonth(now, user.getEndDay());
+        }
+    }
+
+    private ZonedDateTime getMonth(ZonedDateTime now, int day) {
+        if(now.getDayOfMonth() < day) {
+            return now.with(TemporalAdjusters.firstDayOfMonth());
+        }else {
+            return now.with(TemporalAdjusters.firstDayOfNextMonth());
         }
     }
 
