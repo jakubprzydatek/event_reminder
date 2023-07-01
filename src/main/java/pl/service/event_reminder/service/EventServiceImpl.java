@@ -2,11 +2,7 @@ package pl.service.event_reminder.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import pl.service.event_reminder.authentication.IAuthenticationFacade;
 import pl.service.event_reminder.dictionary.MonthGroups;
 import pl.service.event_reminder.exception.EventException;
 import pl.service.event_reminder.model.entity.Event;
@@ -25,10 +21,10 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService{
     private final MonthGroupService monthGroupService;
-    private final UserService userService;
-    private final IAuthenticationFacade authenticationFacade;
     private final EventRepository eventRepository;
     private final EventValidator eventValidator;
+    private final UserService userService;
+
     @Override
     public Event save(EventCreationDto eventCreationDto) {
         eventValidator.validateEvent(eventCreationDto);
@@ -39,11 +35,11 @@ public class EventServiceImpl implements EventService{
                 .creationDate(ZonedDateTime.now())
                 .isActive(true)
                 .monthGroup(monthGroupService.findByName(eventCreationDto.getMonthGroup()))
-                .user(getCurrentUser())
-                .nextNotifyMonth(setNextNotificationDate(eventCreationDto, getCurrentUser()))
+                .user(userService.getCurrentUser())
+                .nextNotifyMonth(setNextNotificationDate(eventCreationDto, userService.getCurrentUser()))
                 .build();
 
-        log.info("Creating new event for user {}. Next notification month will be: {}", getCurrentUser().getEmail(),
+        log.info("Creating new event for user {}. Next notification month will be: {}", userService.getCurrentUser().getEmail(),
                 event.getNextNotifyMonth().getMonth().toString());
 
         return eventRepository.save(event);
@@ -71,17 +67,6 @@ public class EventServiceImpl implements EventService{
     @Override
     public Set<Event> findAllByUser(User user) {
         return eventRepository.findAllByUser(user);
-    }
-
-    public User getCurrentUser() {
-        Authentication authentication = authenticationFacade.getAuthentication();
-        if(!(authentication instanceof AnonymousAuthenticationToken)) {
-            String userName = authentication.getName();
-
-            return userService.findByEmail(userName);
-        }else {
-            throw new AuthenticationServiceException("Błąd autoryzacji");
-        }
     }
 
     @Override

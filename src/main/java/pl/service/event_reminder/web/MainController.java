@@ -8,6 +8,7 @@ import org.springframework.web.servlet.ModelAndView;
 import pl.service.event_reminder.model.entity.Event;
 import pl.service.event_reminder.model.entity.User;
 import pl.service.event_reminder.service.EventService;
+import pl.service.event_reminder.service.UserService;
 import pl.service.event_reminder.web.dto.EventCreationDto;
 import pl.service.event_reminder.web.dto.EventDisplayDto;
 
@@ -19,9 +20,10 @@ import java.util.List;
 @RequestMapping("/")
 public class MainController {
     private final EventService eventService;
+    private final UserService userService;
     @GetMapping
     public ModelAndView showAll() {
-        User user = eventService.getCurrentUser();
+        User user = userService.getCurrentUser();
         log.info("Showing all events for user {}", user.getEmail());
         List<EventDisplayDto> events = EventDisplayDto.mapEventsToDto(eventService.findAllByUser(user));
         ModelAndView modelAndView = new ModelAndView("index");

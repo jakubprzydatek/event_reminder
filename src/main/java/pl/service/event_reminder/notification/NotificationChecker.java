@@ -47,7 +47,9 @@ public class NotificationChecker {
     private Set<Event> prepareEventsToNotifyForUser(User user) {
         Set<Event> events = eventRepository.findAllByUser(user);
 
-        return events.stream().filter(event -> shouldBeSent(event, user)).collect(Collectors.toSet());
+        return events.stream()
+                .filter(event -> shouldBeSent(event, user))
+                .collect(Collectors.toSet());
     }
 
     private boolean shouldBeSent(Event event, User user) {

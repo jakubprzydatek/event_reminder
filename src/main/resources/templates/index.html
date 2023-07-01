@@ -24,6 +24,7 @@
     <div id="navbar" class="collapse navbar-collapse">
       <ul class="nav navbar-nav">
         <li sec:authorize="isAuthenticated()"><a th:href="@{/createevent}">Dodaj event</a></li>
+        <li sec:authorize="isAuthenticated()"><a th:href="@{/settings}">Ustawienia</a></li>
         <li sec:authorize="isAuthenticated()"><a th:href="@{/logout}">Wyloguj się</a></li>
       </ul>
     </div>
@@ -38,6 +39,9 @@
   <!-- success message -->
   <div th:if="${param.successEdit}">
     <div class="alert alert-info">Zaktualizowano wydarzenie</div>
+  </div>
+  <div th:if="${param.successEditSettings}">
+    <div class="alert alert-info">Zaktualizowano ustawienia użytkownika</div>
   </div>
 
   <h1>Lista Twoich eventów</h1>
@@ -58,9 +62,11 @@
       <td><span th:text="${event.additionalNote}"> Author </span></td>
       <td><span th:text="${event.monthGroup}"> Author </span></td>
       <td><form th:switch="${event.isActive}" th:action="@{/deactivate/{id}(id=${event.id})}" method="post">
-        <button th:case="true" type="submit" name="action"  th:text="Wyłącz" value="deactivate" ></button>
-        <button th:case="false" type="submit" name="action"  th:text="Włącz" value="activate" th:formaction="@{/activate/{id}(id=${event.id})}"></button>
-        <button type="submit" name="action"  th:text="Edytuj" value="edit" th:formaction="@{/edit/{id}(id=${event.id})}"></button>
+        <button th:case="true" type="submit" name="action"  th:text="Wyłącz" value="deactivate" class="btn btn-danger"></button>
+        <button th:case="false" type="submit" name="action"  th:text="Włącz" value="activate"
+                th:formaction="@{/activate/{id}(id=${event.id})}" class="btn btn-success"></button>
+        <button type="submit" name="action"  th:text="Edytuj" value="edit"
+                th:formaction="@{/edit/{id}(id=${event.id})}" class="btn btn-primary"></button>
       </form></td>
     </tr>
     </tbody>

@@ -15,8 +15,6 @@ public interface EventService {
 
     Set<Event> findAllByUser(User user);
 
-    User getCurrentUser();
-
     Event deactivateEvent(Long id);
 
     Event activateEvent(Long id);

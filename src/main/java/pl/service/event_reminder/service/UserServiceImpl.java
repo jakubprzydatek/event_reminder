@@ -2,15 +2,21 @@ package pl.service.event_reminder.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import pl.service.event_reminder.authentication.IAuthenticationFacade;
 import pl.service.event_reminder.config.PasswordEncoder;
 import pl.service.event_reminder.exception.EventException;
 import pl.service.event_reminder.model.entity.User;
 import pl.service.event_reminder.model.entity.mapper.UserMapper;
 import pl.service.event_reminder.model.repository.UserRepository;
+import pl.service.event_reminder.validator.UserValidator;
 import pl.service.event_reminder.web.dto.UserRegistrationDto;
+import pl.service.event_reminder.web.dto.UserSettingsDto;
 
 import java.util.Optional;
 import java.util.Set;
@@ -22,6 +28,9 @@ public class UserServiceImpl implements UserService{
     private final UserRepository userRepository;
     private final RoleService roleService;
     private final PasswordEncoder bCryptPassword;
+    private final IAuthenticationFacade authenticationFacade;
+    private final UserValidator userValidator;
+
     private static final String DEFAULT_USER_ROLE = "ROLE_USER";
     @Override
     public User save(UserRegistrationDto userRegistrationDto) {
@@ -50,6 +59,30 @@ public class UserServiceImpl implements UserService{
         }else {
             throw new EventException("Cannot find user with such ID");
         }
+    }
+
+    @Override
+    public User getCurrentUser() {
+        Authentication authentication = authenticationFacade.getAuthentication();
+        if(!(authentication instanceof AnonymousAuthenticationToken)) {
+            String userName = authentication.getName();
+
+            return findByEmail(userName);
+        }else {
+            throw new AuthenticationServiceException("Błąd autoryzacji");
+        }
+    }
+
+    @Override
+    public User updateUserSettings(UserSettingsDto userSettingsDto) {
+        userValidator.validateUserSettings(userSettingsDto);
+
+        User user = getCurrentUser();
+        user.setStartDay(Integer.parseInt(userSettingsDto.getStartDay()));
+        user.setHalfDay(Integer.parseInt(userSettingsDto.getHalfDay()));
+        user.setEndDay(Integer.parseInt(userSettingsDto.getEndDay()));
+
+        return userRepository.save(user);
     }
 
     @Override
